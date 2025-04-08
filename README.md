@@ -39,7 +39,7 @@ Diamond after applying Name Tag with the title `ruby`:
 
 This mod also changes `minecraft:equippable` component for such items as armor pieces and elytras.
 
-for example, `Diamond Helmet` before applying Name Tag with the title `hat`:
+for example, `Diamond Helmet` before applying Name Tag with the title `crown`:
 ```
 {
     count: 1, 
