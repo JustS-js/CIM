@@ -1,5 +1,6 @@
 package net.just_s.mixin;
 
+import net.just_s.CIMMod;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
@@ -13,6 +14,8 @@ import net.minecraft.recipe.input.SmithingRecipeInput;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
@@ -65,14 +68,14 @@ public class SmithingTransformRecipeMixin {
 		ComponentChanges.Builder componentBuilder = ComponentChanges.builder();
 		componentBuilder = componentBuilder.add(DataComponentTypes.CUSTOM_MODEL_DATA, modelComponent);
 
-		if (item.getDefaultComponents().contains(DataComponentTypes.EQUIPPABLE)) {
+		if (item.getDefaultComponents().contains(DataComponentTypes.EQUIPPABLE) && shouldApplyEquippable(item)) {
 			ComponentMap componentMapReturnable = item.getComponents();
 			EquippableComponent returnableEquippableComponent = componentMapReturnable.get(DataComponentTypes.EQUIPPABLE);
 
 			EquippableComponent newEquippableComponent = new EquippableComponent(
 					returnableEquippableComponent.slot(),
 					returnableEquippableComponent.equipSound(),
-					Optional.of(RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, Identifier.of(customModelDataString))),
+					Optional.of(RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, Identifier.of(CIMMod.MOD_ID, customModelDataString))),
 					returnableEquippableComponent.cameraOverlay(),
 					returnableEquippableComponent.allowedEntities(),
 					returnableEquippableComponent.dispensable(),
@@ -89,11 +92,17 @@ public class SmithingTransformRecipeMixin {
 		ComponentChanges.Builder componentBuilder = ComponentChanges.builder();
 		componentBuilder = componentBuilder.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
 
-		if (item.getDefaultComponents().contains(DataComponentTypes.EQUIPPABLE)) {
+		if (item.getDefaultComponents().contains(DataComponentTypes.EQUIPPABLE) && shouldApplyEquippable(item)) {
 			EquippableComponent newEquippableComponent = item.getDefaultComponents().get(DataComponentTypes.EQUIPPABLE);
 			componentBuilder.add(DataComponentTypes.EQUIPPABLE, newEquippableComponent);
 		}
 
 		return componentBuilder.build();
+	}
+
+	@Unique
+	private boolean shouldApplyEquippable(ItemStack item) {
+		// armor, elytra
+		return item.isIn(ItemTags.EQUIPPABLE_ENCHANTABLE) && !item.isOf(Items.CARVED_PUMPKIN) && !item.isIn(ItemTags.SKULLS);
 	}
 }
