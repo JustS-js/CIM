@@ -15,7 +15,10 @@
 	"environment": "server",
 	"entrypoints": {
 		"server": [
-			"net.just_s.ExampleMod"
+			"net.just_s.CIMMod"
+		],
+		"fabric-datagen": [
+			"net.just_s.datagen.CIMDataGenerator"
 		]
 	},
 	"mixins": [

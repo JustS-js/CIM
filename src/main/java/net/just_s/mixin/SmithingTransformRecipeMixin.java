@@ -18,32 +18,42 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 
 @Mixin(SmithingTransformRecipe.class)
-public class ExampleMixin {
-	@Inject(at = @At("HEAD"), method = "craft", cancellable = true)
+public class SmithingTransformRecipeMixin {
+	@Inject(at = @At("HEAD"), method = "craft*", cancellable = true)
 	private void cim$injectCraftData(SmithingRecipeInput smithingRecipeInput, RegistryWrapper.WrapperLookup wrapperLookup, CallbackInfoReturnable<ItemStack> cir) {
 		if (!smithingRecipeInput.addition().isOf(Items.NAME_TAG)) {
 			return;
 		}
-		ItemStack nameTag = smithingRecipeInput.addition();
-		ComponentMap componentMap = nameTag.getComponents();
-
-		Text customName = componentMap.get(DataComponentTypes.CUSTOM_NAME);
-		if (customName == null) {
+		ItemStack returnableStack = smithingRecipeInput.base().copy();
+		if (returnableStack == null) {
 			return;
 		}
 
-		String customNameAsString = customName.getString();
-		ItemStack returnableStack = smithingRecipeInput.base();
+		ItemStack nameTag = smithingRecipeInput.addition();
+		ComponentMap componentMap = nameTag.getComponents();
 
-		CustomModelDataComponent modelComponent = new CustomModelDataComponent(
-				List.of(), 					// Float
-				List.of(), 					// Boolean
-				List.of(customNameAsString),// String
-				List.of()					// Integer
-		);
-		ComponentChanges componentChanges = ComponentChanges.builder()
-															.add(DataComponentTypes.CUSTOM_MODEL_DATA, modelComponent)
-															.build();
+		ComponentChanges componentChanges;
+		Text customName = componentMap.get(DataComponentTypes.CUSTOM_NAME);
+		if (customName != null) {
+			// Has CustomName -> Adding CustomItemModel
+			String customNameAsString = customName.getString();
+
+			CustomModelDataComponent modelComponent = new CustomModelDataComponent(
+					List.of(), 					// Float
+					List.of(), 					// Boolean
+					List.of(customNameAsString),// String
+					List.of()					// Integer
+			);
+			componentChanges = ComponentChanges.builder()
+					.add(DataComponentTypes.CUSTOM_MODEL_DATA, modelComponent)
+					.build();
+		} else {
+			// Does not have CustomName -> Removing CustomItemModel
+			componentChanges = ComponentChanges.builder()
+					.remove(DataComponentTypes.CUSTOM_MODEL_DATA)
+					.build();
+		}
+
 		returnableStack.applyChanges(componentChanges);
 		cir.setReturnValue(returnableStack);
 	}
