@@ -12,9 +12,9 @@
 	},
 	"license": "MIT",
 	"icon": "assets/cim/icon.png",
-	"environment": "server",
+	"environment": "*",
 	"entrypoints": {
-		"server": [
+		"main": [
 			"net.just_s.CIMMod"
 		],
 		"fabric-datagen": [

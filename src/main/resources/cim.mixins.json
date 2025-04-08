@@ -2,11 +2,9 @@
   "required": true,
   "package": "net.just_s.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": ["SmithingTransformRecipeMixin"],
   "injectors": {
     "defaultRequire": 1
   },
-  "server": [
-    "SmithingTransformRecipeMixin"
-  ]
+  "server": []
 }
