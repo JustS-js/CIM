@@ -14,7 +14,7 @@
 	"icon": "assets/cim/icon.png",
 	"environment": "server",
 	"entrypoints": {
-		"main": [
+		"server": [
 			"net.just_s.ExampleMod"
 		]
 	},

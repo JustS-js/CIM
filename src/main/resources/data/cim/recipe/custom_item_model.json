@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": "minecraft:name_tag",
+  "base": {},
+  "result": {
+    "id": "minecraft:name_tag"
+  }
+}
