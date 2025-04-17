@@ -61,16 +61,16 @@ and after applying Name Tag with the title `crown`:
         "minecraft:equippable": {
             equip_sound: "minecraft:item.armor.equip_diamond", 
             slot: "head", 
-            asset_id: "cit:crown"
+            asset_id: "cim:crown"
         }
     }
 }
 ```
 ![img](tutorial/apply_crown.png)
 
-ATTENTION: Be aware that `asset_id` **will always** be under `cit` namespace, due to how vanilla code operates. You can see examples in the tutorial directory.
+ATTENTION: Be aware that `asset_id` **will always** be under `cim` namespace, due to how vanilla code operates. You can see examples in the tutorial directory.
 
-*You don't have to use `cit` namespace for item models, only for armor rendering.*
+*You don't have to use `cim` namespace for item models, only for armor rendering.*
 
 ![img](tutorial/result.png)
 ## License
