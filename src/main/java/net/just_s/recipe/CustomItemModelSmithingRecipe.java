@@ -81,7 +81,7 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 	}
 
 	public static ItemStack craft(ItemStack input, @Nullable String customModelText) {
-		ItemStack result = input.copy();
+		ItemStack result = input.copyWithCount(1);
 		ComponentChanges componentChanges;
 		if (customModelText != null) {
 			// Has CustomName -> Adding CustomItemModel
