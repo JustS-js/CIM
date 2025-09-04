@@ -117,7 +117,9 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 					returnableEquippableComponent.dispensable(),
 					returnableEquippableComponent.swappable(),
 					returnableEquippableComponent.damageOnHurt(),
-					returnableEquippableComponent.equipOnInteract()
+					returnableEquippableComponent.equipOnInteract(),
+					returnableEquippableComponent.canBeSheared(),
+					returnableEquippableComponent.shearingSound()
 			);
 			componentBuilder.add(DataComponentTypes.EQUIPPABLE, newEquippableComponent);
 		}
