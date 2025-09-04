@@ -71,8 +71,8 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 	}
 
 	@Override
-	public Optional<Ingredient> base() {
-		return Optional.of(AnyItemIngredient.INSTANCE.toVanilla());
+	public Ingredient base() {
+		return AnyItemIngredient.INSTANCE.toVanilla();
 	}
 
 	@Override
@@ -116,7 +116,8 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 					returnableEquippableComponent.allowedEntities(),
 					returnableEquippableComponent.dispensable(),
 					returnableEquippableComponent.swappable(),
-					returnableEquippableComponent.damageOnHurt()
+					returnableEquippableComponent.damageOnHurt(),
+					returnableEquippableComponent.equipOnInteract()
 			);
 			componentBuilder.add(DataComponentTypes.EQUIPPABLE, newEquippableComponent);
 		}
