@@ -1,9 +1,10 @@
 plugins {
-	id 'fabric-loom' version '1.10-SNAPSHOT'
+	id 'net.fabricmc.fabric-loom-remap' version '1.15-SNAPSHOT'
 	id 'maven-publish'
+	id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
-version = project.mod_version
+version = project.mod_version + "+" + project.minecraft_version
 group = project.maven_group
 
 base {
@@ -43,20 +44,16 @@ dependencies {
 
 processResources {
 	inputs.property "version", project.version
+	inputs.property "minecraft_version", project.minecraft_version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": inputs.properties.version
+		expand "version": inputs.properties.version,
+				"minecraft_version": inputs.properties.minecraft_version
 	}
 }
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
-}
-
-fabricApi {
-	configureDataGeneration() {
-		client = true
-	}
 }
 
 java {
@@ -67,6 +64,12 @@ java {
 
 	sourceCompatibility = JavaVersion.VERSION_21
 	targetCompatibility = JavaVersion.VERSION_21
+}
+
+fabricApi {
+	configureDataGeneration() {
+		client = true
+	}
 }
 
 jar {
@@ -92,5 +95,18 @@ publishing {
 		// Notice: This block does NOT have the same function as the block in the top level.
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
+	}
+}
+
+publishMods {
+	file = remapJar.archiveFile
+	changelog = file('changelog.md').text
+	type = STABLE
+	modLoaders.add("fabric")
+
+	modrinth {
+		projectId = "epIlUBGV"
+		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+		minecraftVersions.add(minecraft_version)
 	}
 }

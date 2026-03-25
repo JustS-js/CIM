@@ -2,13 +2,15 @@
 	"schemaVersion": 1,
 	"id": "cim",
 	"version": "${version}",
-	"name": "CIM:MS Demo",
-	"description": "This is a demo version for Custom Item Model",
+	"name": "Custom Item Models",
+	"description": "Custom Item Models Mod powered by Custom Model Data Component",
 	"authors": [
 		"Just_S"
 	],
 	"contact": {
-		"sources": "https://github.com/JustS-js/CIM"
+		"homepage": "https://modrinth.com/mod/cim",
+		"sources": "https://github.com/JustS-js/CIM",
+		"issues": "https://github.com/JustS-js/CIM/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/cim/icon.png",
@@ -22,8 +24,7 @@
 		]
 	},
 	"depends": {
-		"fabricloader": ">=0.17.2",
-		"minecraft": ">=1.21.5",
+		"minecraft": ">=${minecraft_version}",
 		"java": ">=21",
 		"fabric-api": "*"
 	}
