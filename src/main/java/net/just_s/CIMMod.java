@@ -3,7 +3,7 @@ package net.just_s;
 import net.fabricmc.api.ModInitializer;
 import net.just_s.recipe.ModRecipes;
 import net.just_s.recipe.ingredient.ModIngredients;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ public class CIMMod implements ModInitializer {
 		LOGGER.info("Custom Item Models loaded!");
 	}
 
-	public static Identifier id(String path) {
-		return Identifier.of(MOD_ID, path);
+	public static ResourceLocation id(String path) {
+		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
 	}
 }
