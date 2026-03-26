@@ -4,28 +4,28 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.just_s.CIMMod;
 import net.just_s.recipe.ingredient.AnyItemIngredient;
-import net.minecraft.component.ComponentChanges;
-import net.minecraft.component.ComponentMap;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.component.type.EquippableComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.equipment.EquipmentAssetKeys;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.IngredientPlacement;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.SmithingRecipe;
-import net.minecraft.recipe.input.SmithingRecipeInput;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Nullables;
-import net.minecraft.world.World;
+import net.minecraft.Optionull;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomModelData;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.SmithingRecipe;
+import net.minecraft.world.item.crafting.SmithingRecipeInput;
+import net.minecraft.world.item.equipment.EquipmentAssets;
+import net.minecraft.world.item.equipment.Equippable;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -39,15 +39,15 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 	}
 
 	@Override
-	public boolean matches(SmithingRecipeInput input, World world) {
+	public boolean matches(SmithingRecipeInput input, Level world) {
 		return input.template().isEmpty()
 				&& !input.base().isEmpty()
 				&& addition.test(input.addition());
 	}
 
 	@Override
-	public ItemStack craft(SmithingRecipeInput input, RegistryWrapper.WrapperLookup registries) {
-		return craft(input.base(), Nullables.map(input.addition().get(DataComponentTypes.CUSTOM_NAME), Text::getString));
+	public ItemStack assemble(SmithingRecipeInput input, HolderLookup.Provider registries) {
+		return craft(input.base(), Optionull.map(input.addition().get(DataComponents.CUSTOM_NAME), Component::getString));
 	}
 
 	@Override
@@ -56,33 +56,33 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 	}
 
 	@Override
-	public IngredientPlacement getIngredientPlacement() {
-		return IngredientPlacement.NONE;
+	public PlacementInfo placementInfo() {
+		return PlacementInfo.NOT_PLACEABLE;
 	}
 
 	@Override
-	public boolean isIgnoredInRecipeBook() {
+	public boolean isSpecial() {
 		return true;
 	}
 
 	@Override
-	public Optional<Ingredient> template() {
+	public Optional<Ingredient> templateIngredient() {
 		return Optional.empty();
 	}
 
 	@Override
-	public Optional<Ingredient> base() {
+	public Optional<Ingredient> baseIngredient() {
 		return Optional.of(AnyItemIngredient.INSTANCE.toVanilla());
 	}
 
 	@Override
-	public Optional<Ingredient> addition() {
+	public Optional<Ingredient> additionIngredient() {
 		return Optional.of(addition);
 	}
 
 	public static ItemStack craft(ItemStack input, @Nullable String customModelText) {
 		ItemStack result = input.copyWithCount(1);
-		ComponentChanges componentChanges;
+		DataComponentPatch componentChanges;
 		if (customModelText != null) {
 			// Has CustomName -> Adding CustomItemModel
 			componentChanges = modifyComponentChanges(result, customModelText);
@@ -90,46 +90,46 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 			// Does not have CustomName -> Removing CustomItemModel
 			componentChanges = resetComponentChanges(result);
 		}
-		result.applyChanges(componentChanges);
+		result.applyComponentsAndValidate(componentChanges);
 		return result;
 	}
 
-	private static ComponentChanges modifyComponentChanges(ItemStack item, String customModelDataString) {
-		CustomModelDataComponent modelComponent = new CustomModelDataComponent(
+	private static DataComponentPatch modifyComponentChanges(ItemStack item, String customModelDataString) {
+		CustomModelData modelComponent = new CustomModelData(
 				List.of(), 						// Float
 				List.of(), 						// Boolean
 				List.of(customModelDataString),	// String
 				List.of()						// Integer
 		);
-		ComponentChanges.Builder componentBuilder = ComponentChanges.builder();
-		componentBuilder = componentBuilder.add(DataComponentTypes.CUSTOM_MODEL_DATA, modelComponent);
+		DataComponentPatch.Builder componentBuilder = DataComponentPatch.builder();
+		componentBuilder = componentBuilder.set(DataComponents.CUSTOM_MODEL_DATA, modelComponent);
 
-		if (Identifier.isPathValid(customModelDataString) && item.getDefaultComponents().contains(DataComponentTypes.EQUIPPABLE) && shouldApplyEquippable(item)) {
-			ComponentMap componentMapReturnable = item.getComponents();
-			EquippableComponent returnableEquippableComponent = componentMapReturnable.get(DataComponentTypes.EQUIPPABLE);
+		if (ResourceLocation.isValidPath(customModelDataString) && item.getPrototype().has(DataComponents.EQUIPPABLE) && shouldApplyEquippable(item)) {
+			DataComponentMap componentMapReturnable = item.getComponents();
+			Equippable returnableEquippableComponent = componentMapReturnable.get(DataComponents.EQUIPPABLE);
 
-			EquippableComponent newEquippableComponent = new EquippableComponent(
+			Equippable newEquippableComponent = new Equippable(
 					returnableEquippableComponent.slot(),
 					returnableEquippableComponent.equipSound(),
-					Optional.of(RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, Identifier.of(CIMMod.MOD_ID, customModelDataString))),
+					Optional.of(ResourceKey.create(EquipmentAssets.ROOT_ID, ResourceLocation.fromNamespaceAndPath(CIMMod.MOD_ID, customModelDataString))),
 					returnableEquippableComponent.cameraOverlay(),
 					returnableEquippableComponent.allowedEntities(),
 					returnableEquippableComponent.dispensable(),
 					returnableEquippableComponent.swappable(),
 					returnableEquippableComponent.damageOnHurt()
 			);
-			componentBuilder.add(DataComponentTypes.EQUIPPABLE, newEquippableComponent);
+			componentBuilder.set(DataComponents.EQUIPPABLE, newEquippableComponent);
 		}
 		return componentBuilder.build();
 	}
 
-	private static ComponentChanges resetComponentChanges(ItemStack item) {
-		ComponentChanges.Builder componentBuilder = ComponentChanges.builder()
-				.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+	private static DataComponentPatch resetComponentChanges(ItemStack item) {
+		DataComponentPatch.Builder componentBuilder = DataComponentPatch.builder()
+				.remove(DataComponents.CUSTOM_MODEL_DATA);
 
-		if (item.getDefaultComponents().contains(DataComponentTypes.EQUIPPABLE) && shouldApplyEquippable(item)) {
-			EquippableComponent newEquippableComponent = item.getDefaultComponents().get(DataComponentTypes.EQUIPPABLE);
-			componentBuilder.add(DataComponentTypes.EQUIPPABLE, newEquippableComponent);
+		if (item.getPrototype().has(DataComponents.EQUIPPABLE) && shouldApplyEquippable(item)) {
+			Equippable newEquippableComponent = item.getPrototype().get(DataComponents.EQUIPPABLE);
+			componentBuilder.set(DataComponents.EQUIPPABLE, newEquippableComponent);
 		}
 
 		return componentBuilder.build();
@@ -137,14 +137,14 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 
 	private static boolean shouldApplyEquippable(ItemStack item) {
 		// armor, elytra
-		return item.isIn(ItemTags.EQUIPPABLE_ENCHANTABLE) && !item.isOf(Items.CARVED_PUMPKIN) && !item.isIn(ItemTags.SKULLS);
+		return item.is(ItemTags.EQUIPPABLE_ENCHANTABLE) && !item.is(Items.CARVED_PUMPKIN) && !item.is(ItemTags.SKULLS);
 	}
 
 	public static class Serializer implements RecipeSerializer<CustomItemModelSmithingRecipe> {
 		private static final MapCodec<CustomItemModelSmithingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 				Ingredient.CODEC.fieldOf("addition").forGetter(r -> r.addition)
 		).apply(instance, CustomItemModelSmithingRecipe::new));
-		private static final PacketCodec<RegistryByteBuf, CustomItemModelSmithingRecipe> PACKET_CODEC = ModRecipes.deprecatedRecipePacketCodec();
+		private static final StreamCodec<RegistryFriendlyByteBuf, CustomItemModelSmithingRecipe> PACKET_CODEC = ModRecipes.deprecatedRecipePacketCodec();
 
 		@Override
 		public MapCodec<CustomItemModelSmithingRecipe> codec() {
@@ -153,7 +153,7 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 
 		@Override
 		@Deprecated
-		public PacketCodec<RegistryByteBuf, CustomItemModelSmithingRecipe> packetCodec() {
+		public StreamCodec<RegistryFriendlyByteBuf, CustomItemModelSmithingRecipe> streamCodec() {
 			return PACKET_CODEC;
 		}
 	}
