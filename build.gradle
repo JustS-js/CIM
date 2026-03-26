@@ -107,6 +107,6 @@ publishMods {
 	modrinth {
 		projectId = "epIlUBGV"
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
-		minecraftVersions.add(minecraft_version)
+		minecraftVersions.add(supported_minecraft_versions.split(','))
 	}
 }
