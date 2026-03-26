@@ -1,2 +1,1 @@
-- Fix mod name in `fabric.mod.json`
-- Add more links to `fabric.mod.json`
+- Update to Minecraft 26.1

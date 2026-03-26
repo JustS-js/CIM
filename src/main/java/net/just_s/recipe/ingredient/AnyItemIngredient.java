@@ -8,7 +8,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -28,7 +28,7 @@ public class AnyItemIngredient implements CustomIngredient {
 
 	// Required for ability to place items in smithing slots
 	@Override
-	public Stream<Holder<Item>> getMatchingItems() {
+	public Stream<Holder<Item>> items() {
 		return BuiltInRegistries.ITEM.stream().filter(i -> i != Items.AIR).map(BuiltInRegistries.ITEM::wrapAsHolder);
 	}
 
@@ -44,12 +44,12 @@ public class AnyItemIngredient implements CustomIngredient {
 	}
 
 	public static class Serializer implements CustomIngredientSerializer<AnyItemIngredient> {
-		public static final ResourceLocation ID = CIMMod.id("any_item");
+		public static final Identifier ID = CIMMod.id("any_item");
 		private static final MapCodec<AnyItemIngredient> CODEC = MapCodec.unit(INSTANCE);
 		private static final StreamCodec<RegistryFriendlyByteBuf, AnyItemIngredient> PACKET_CODEC = StreamCodec.unit(INSTANCE);
 
 		@Override
-		public ResourceLocation getIdentifier() {
+		public Identifier getIdentifier() {
 			return ID;
 		}
 
@@ -59,7 +59,7 @@ public class AnyItemIngredient implements CustomIngredient {
 		}
 
 		@Override
-		public StreamCodec<RegistryFriendlyByteBuf, AnyItemIngredient> getPacketCodec() {
+		public StreamCodec<RegistryFriendlyByteBuf, AnyItemIngredient> getStreamCodec() {
 			return PACKET_CODEC;
 		}
 	}

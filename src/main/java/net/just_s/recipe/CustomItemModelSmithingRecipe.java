@@ -5,15 +5,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.just_s.CIMMod;
 import net.just_s.recipe.ingredient.AnyItemIngredient;
 import net.minecraft.Optionull;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -32,6 +29,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class CustomItemModelSmithingRecipe implements SmithingRecipe {
+	public static final MapCodec<CustomItemModelSmithingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+			Ingredient.CODEC.fieldOf("addition").forGetter(r -> r.addition)
+	).apply(instance, CustomItemModelSmithingRecipe::new));
 	private final Ingredient addition;
 
 	public CustomItemModelSmithingRecipe(Ingredient addition) {
@@ -46,7 +46,7 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(SmithingRecipeInput input, HolderLookup.Provider registries) {
+	public ItemStack assemble(SmithingRecipeInput input) {
 		return craft(input.base(), Optionull.map(input.addition().get(DataComponents.CUSTOM_NAME), Component::getString));
 	}
 
@@ -63,6 +63,16 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 	@Override
 	public boolean isSpecial() {
 		return true;
+	}
+
+	@Override
+	public boolean showNotification() {
+		return false;
+	}
+
+	@Override
+	public String group() {
+		return "";
 	}
 
 	@Override
@@ -104,14 +114,14 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 		DataComponentPatch.Builder componentBuilder = DataComponentPatch.builder();
 		componentBuilder = componentBuilder.set(DataComponents.CUSTOM_MODEL_DATA, modelComponent);
 
-		if (ResourceLocation.isValidPath(customModelDataString) && item.getPrototype().has(DataComponents.EQUIPPABLE) && shouldApplyEquippable(item)) {
+		if (Identifier.isValidPath(customModelDataString) && item.getPrototype().has(DataComponents.EQUIPPABLE) && shouldApplyEquippable(item)) {
 			DataComponentMap componentMapReturnable = item.getComponents();
 			Equippable returnableEquippableComponent = componentMapReturnable.get(DataComponents.EQUIPPABLE);
 
 			Equippable newEquippableComponent = new Equippable(
 					returnableEquippableComponent.slot(),
 					returnableEquippableComponent.equipSound(),
-					Optional.of(ResourceKey.create(EquipmentAssets.ROOT_ID, ResourceLocation.fromNamespaceAndPath(CIMMod.MOD_ID, customModelDataString))),
+					Optional.of(ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(CIMMod.MOD_ID, customModelDataString))),
 					returnableEquippableComponent.cameraOverlay(),
 					returnableEquippableComponent.allowedEntities(),
 					returnableEquippableComponent.dispensable(),
@@ -141,23 +151,5 @@ public class CustomItemModelSmithingRecipe implements SmithingRecipe {
 	private static boolean shouldApplyEquippable(ItemStack item) {
 		// armor, elytra
 		return item.is(ItemTags.EQUIPPABLE_ENCHANTABLE) && !item.is(Items.CARVED_PUMPKIN) && !item.is(ItemTags.SKULLS);
-	}
-
-	public static class Serializer implements RecipeSerializer<CustomItemModelSmithingRecipe> {
-		private static final MapCodec<CustomItemModelSmithingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-				Ingredient.CODEC.fieldOf("addition").forGetter(r -> r.addition)
-		).apply(instance, CustomItemModelSmithingRecipe::new));
-		private static final StreamCodec<RegistryFriendlyByteBuf, CustomItemModelSmithingRecipe> PACKET_CODEC = ModRecipes.deprecatedRecipePacketCodec();
-
-		@Override
-		public MapCodec<CustomItemModelSmithingRecipe> codec() {
-			return CODEC;
-		}
-
-		@Override
-		@Deprecated
-		public StreamCodec<RegistryFriendlyByteBuf, CustomItemModelSmithingRecipe> streamCodec() {
-			return PACKET_CODEC;
-		}
 	}
 }
