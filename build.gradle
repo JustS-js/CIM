@@ -66,12 +66,6 @@ java {
 	targetCompatibility = JavaVersion.VERSION_21
 }
 
-fabricApi {
-	configureDataGeneration() {
-		client = true
-	}
-}
-
 jar {
 	inputs.property "archivesName", project.base.archivesName
 
